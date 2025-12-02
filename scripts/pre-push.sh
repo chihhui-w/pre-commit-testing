@@ -40,8 +40,8 @@ if [ -z "$COMMITS" ]; then
   exit 0
 fi
 
-echo "Commits to validate:"
-git log --oneline "$RANGE"
+echo "Commits to validate:" >&2
+git log --oneline "$RANGE" >&2
 
 # 強制套用 main branch 的規則
 CURRENT_BRANCH="main"
