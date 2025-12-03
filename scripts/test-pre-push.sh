@@ -9,17 +9,17 @@ CURRENT_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null)
 
 # Only check main branch
 if [ "$CURRENT_BRANCH" != "main" ]; then
-  echo -e "${BLUE}ℹ️  Skipping pre-push validation for branch: $CURRENT_BRANCH${NC}"
+  echo -e "${BLUE} Skipping pre-push validation for branch: $CURRENT_BRANCH${NC}"
   exit 0
 fi
 
-echo -e "${YELLOW}🔍 Validating commits on main branch before push...${NC}"
+echo -e "${YELLOW} Validating commits on main branch before push...${NC}"
 
 # Get the remote tracking branch
 REMOTE_BRANCH=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null)
 
 if [ -z "$REMOTE_BRANCH" ]; then
-  echo -e "${YELLOW}⚠️  No remote tracking branch found, skipping validation${NC}"
+  echo -e "${YELLOW} No remote tracking branch found, skipping validation${NC}"
   exit 0
 fi
 
@@ -28,7 +28,7 @@ COMMITS=$(git rev-list "$REMOTE_BRANCH..HEAD")
 
 # Check if there are any commits to validate
 if [ -z "$COMMITS" ]; then
-  echo -e "${GREEN}✅ No new commits to validate${NC}"
+  echo -e "${GREEN} No new commits to validate${NC}"
   exit 0
 fi
 
@@ -44,7 +44,7 @@ done <<< "$COMMITS"
 
 # If there are invalid commits, reject the push
 if [ ${#INVALID_COMMITS[@]} -gt 0 ]; then
-  echo -e "\n${RED}❌ Push rejected: Found ${#INVALID_COMMITS[@]} invalid commit(s)${NC}\n"
+  echo -e "\n${RED} Push rejected: Found ${#INVALID_COMMITS[@]} invalid commit(s)${NC}\n"
   
   for invalid in "${INVALID_COMMITS[@]}"; do
     commit_hash=$(echo "$invalid" | cut -d: -f1)
@@ -57,5 +57,5 @@ if [ ${#INVALID_COMMITS[@]} -gt 0 ]; then
   exit 1
 fi
 
-echo -e "${GREEN}✅ All commits passed validation${NC}\n"
+echo -e "${GREEN} All commits passed validation${NC}\n"
 exit 0
