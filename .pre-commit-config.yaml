@@ -2,7 +2,7 @@ repos:
   - repo: local
     hooks:
       - id: commit-msg-validation
-        name: Validate commit message format
+        name: Validate commit message format when committing
         entry: bash scripts/commit-msg.sh
         language: system
         stages: [commit-msg]
@@ -10,6 +10,6 @@ repos:
     hooks:
       - id: pre-push-validation
         name: Validate commit message format before pushing
-        entry: bash scripts/test-pre-push.sh
+        entry: bash scripts/pre-push.sh
         language: system
         stages: [pre-push]
