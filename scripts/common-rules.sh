@@ -57,9 +57,9 @@ print_main_error() {
 
   print_general_info "$message"
   echo -e "${YELLOW}On the main branch, required formats are:${NC}"
-  echo -e "  1. ${GREEN}<TYPE>(PROJ-1234): <message>${NC}"
-  echo -e "  2. ${GREEN}<TYPE>(PROJ-1234,PROJ-5678): <message>${NC}"
-  echo -e "  3. ${GREEN}hotfix: <message>${NC}"
+  echo -e "  1. ${BLUE}<TYPE>(PROJ-1234): <message>${NC}"
+  echo -e "  2. ${BLUE}<TYPE>(PROJ-1234,PROJ-5678): <message>${NC}"
+  echo -e "  3. ${BLUE}hotfix: <message>${NC}"
   echo -e "\n"
   print_readme_reminder
 }

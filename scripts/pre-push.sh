@@ -44,7 +44,7 @@ done <<< "$COMMITS"
 
 # If there are invalid commits, reject the push
 if [ ${#INVALID_COMMITS[@]} -gt 0 ]; then
-  echo -e "\n${RED} Push rejected: Found ${#INVALID_COMMITS[@]} invalid commit(s)${NC}\n"
+  echo -e "${RED} Push rejected: Found ${#INVALID_COMMITS[@]} invalid commit(s)${NC}\n"
   
   for invalid in "${INVALID_COMMITS[@]}"; do
     commit_hash=$(echo "$invalid" | cut -d: -f1)
