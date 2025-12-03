@@ -11,9 +11,15 @@ YELLOW='\033[0;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+echo -e "${YELLOW}🔍 Pre-push hook triggered${NC}" >&2
+
 # Read push information from stdin
 while read local_ref local_sha remote_ref remote_sha
 do
+  echo -e "${BLUE}DEBUG: local_ref=$local_ref${NC}" >&2
+  echo -e "${BLUE}DEBUG: local_sha=$local_sha${NC}" >&2
+  echo -e "${BLUE}DEBUG: remote_ref=$remote_ref${NC}" >&2
+  echo -e "${BLUE}DEBUG: remote_sha=$remote_sha${NC}" >&2
   # Get the branch name being pushed
   BRANCH_NAME=$(echo "$local_ref" | sed 's/refs\/heads\///')
   
