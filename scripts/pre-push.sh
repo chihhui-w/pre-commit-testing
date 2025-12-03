@@ -1,62 +1,61 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
-
-# This script is used by pre-commit (pre-push hook).
-# It validates commit messages when pushing to the main branch.
-
+# Source the common rules
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=/dev/null
-source "${SCRIPT_DIR}/common-rules.sh"
+source "$SCRIPT_DIR/common-rules.sh"
 
-ORIGINAL_BRANCH=$CURRENT_BRANCH
+# Get current branch
+CURRENT_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null)
 
-# 只在 main 分支時檢查
+# Only check main branch
 if [ "$CURRENT_BRANCH" != "main" ]; then
+  echo -e "${BLUE} Skipping pre-push validation for branch: $CURRENT_BRANCH${NC}"
   exit 0
 fi
 
-# 檢查 upstream 是否是 origin/main
-UPSTREAM_REF=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null || echo "")
-if [ "$UPSTREAM_REF" != "origin/main" ]; then
+echo -e "${YELLOW} Validating commits on main branch before push...${NC}"
+
+# Get the remote tracking branch
+REMOTE_BRANCH=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null)
+
+if [ -z "$REMOTE_BRANCH" ]; then
+  echo -e "${YELLOW} No remote tracking branch found, skipping validation${NC}"
   exit 0
 fi
 
-echo "Validating commits for push to 'main'..."
+# Get commits that exist locally but not on remote
+COMMITS=$(git rev-list "$REMOTE_BRANCH..HEAD")
 
-# 計算要推送的 commits：遠端 main 沒有的那些
-# 使用本地的 refs/remotes/origin/main，避免連接 remote
-if ! git rev-parse --verify --quiet refs/remotes/origin/main >/dev/null 2>&1; then
-  # 遠端還沒有 main（第一次 push）：檢查所有 commits
-  RANGE="HEAD"
-else
-  # 一般情況：只檢查「遠端 main 沒有」的那段
-  RANGE="refs/remotes/origin/main..HEAD"
-fi
-
-COMMITS=$(git rev-list "$RANGE" 2>/dev/null || true)
+# Check if there are any commits to validate
 if [ -z "$COMMITS" ]; then
-  echo "No new commits to validate."
+  echo -e "${GREEN} No new commits to validate${NC}"
   exit 0
 fi
 
-echo "Commits to validate:" >&2
-git log --oneline "$RANGE" >&2
-
-# 強制套用 main branch 的規則
-CURRENT_BRANCH="main"
-
-for commit_hash in $COMMITS; do
-  message=$(git log --format=%B -n 1 "$commit_hash" | head -n1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-
-  if ! validate_commit_message "$message"; then
-    echo -e "${RED}Push rejected. Commit $commit_hash does not conform to the 'main' branch commit message format.${NC}"
-    CURRENT_BRANCH=$ORIGINAL_BRANCH
-    exit 1
+# Validate each commit message
+INVALID_COMMITS=()
+while IFS= read -r commit; do
+  MESSAGE=$(git log -1 --pretty=%B "$commit")
+  
+  if ! validate_commit_message "$MESSAGE"; then
+    INVALID_COMMITS+=("$commit: $MESSAGE")
   fi
-done
+done <<< "$COMMITS"
 
-CURRENT_BRANCH=$ORIGINAL_BRANCH
-echo -e "${GREEN}All commit messages for push to 'main' are valid.${NC}"
+# If there are invalid commits, reject the push
+if [ ${#INVALID_COMMITS[@]} -gt 0 ]; then
+  echo -e "\n${RED} Push rejected: Found ${#INVALID_COMMITS[@]} invalid commit(s)${NC}\n"
+  
+  for invalid in "${INVALID_COMMITS[@]}"; do
+    commit_hash=$(echo "$invalid" | cut -d: -f1)
+    commit_msg=$(echo "$invalid" | cut -d: -f2-)
+    echo -e "${RED}  • $commit_hash${NC}$commit_msg"
+  done
+  
+  echo -e "\n${YELLOW}Please fix the commit messages and try again.${NC}"
+  echo -e "${YELLOW}You can use 'git rebase -i' to edit commit messages.${NC}\n"
+  exit 1
+fi
 
+echo -e "${GREEN} All commits passed validation${NC}\n"
 exit 0
