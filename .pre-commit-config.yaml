@@ -10,6 +10,6 @@ repos:
     hooks:
       - id: pre-push-validation
         name: Validate commit message format before pushing
-        entry: bash scripts/pre-push.sh
+        entry: bash scripts/test-pre-push.sh
         language: system
         stages: [pre-push]
